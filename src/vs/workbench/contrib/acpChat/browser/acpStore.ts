@@ -587,12 +587,14 @@ export class AcpStore {
 	private _setStreaming(streaming: boolean): void {
 		if (this._isStreaming !== streaming) {
 			this._isStreaming = streaming;
-			this._onDidChangeStreaming.fire(streaming);
-			// When streaming stops, flush pending notifications so the final
-			// state renders immediately instead of waiting for the debounce.
+			// When streaming stops, flush pending notifications FIRST so all
+			// debounced content is in _text before the view calls flush() on
+			// the markdown renderer. Otherwise the last batch gets split
+			// across the frozen/active DOM boundary.
 			if (!streaming) {
 				this._flushNotificationFire();
 			}
+			this._onDidChangeStreaming.fire(streaming);
 		}
 	}
 
