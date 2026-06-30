@@ -1,0 +1,130 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/crow-text",
+  "crates/crow-syntax",
+  "crates/crow-lsp",
+  "crates/crow-workspace",
+  "crates/crow-terminal",
+  "crates/crow-git",
+  "crates/crow-extensions",
+  "crates/crow-extension-api",
+  "crates/crow-theme",
+  "crates/crow-keymap",
+  "crates/crow-settings",
+  "crates/crow-db",
+  "crates/crow-remote",
+  "crates/crow-dap",
+  "crates/crow-tasks",
+  "crates/crow-update",
+  "crates/crow-profiles",
+  "crates/crow-auth",
+  "crates/crow-textmate",
+  "crates/crow-acp",
+  "src-tauri",
+  "crow-extension-sdk",
+]
+exclude = ["extensions-rust"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.91.0"
+license = "MIT"
+repository = "https://github.com/sidenai/crow"
+
+[workspace.dependencies]
+# Internal crates
+crow-text = { path = "crates/crow-text" }
+crow-syntax = { path = "crates/crow-syntax" }
+crow-lsp = { path = "crates/crow-lsp" }
+crow-workspace = { path = "crates/crow-workspace" }
+crow-terminal = { path = "crates/crow-terminal" }
+crow-git = { path = "crates/crow-git" }
+crow-extensions = { path = "crates/crow-extensions" }
+crow-extension-api = { path = "crates/crow-extension-api" }
+crow-theme = { path = "crates/crow-theme" }
+crow-keymap = { path = "crates/crow-keymap" }
+crow-settings = { path = "crates/crow-settings" }
+crow-db = { path = "crates/crow-db" }
+crow-remote = { path = "crates/crow-remote" }
+crow-extension-sdk = { path = "crow-extension-sdk" }
+crow-tasks = { path = "crates/crow-tasks" }
+crow-dap = { path = "crates/crow-dap" }
+crow-update = { path = "crates/crow-update" }
+crow-profiles = { path = "crates/crow-profiles" }
+crow-auth = { path = "crates/crow-auth" }
+crow-textmate = { path = "crates/crow-textmate" }
+crow-acp = { path = "crates/crow-acp" }
+
+# Core
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+thiserror = "2"
+
+# Text
+ropey = "1"
+unicode-segmentation = "1"
+unicode-width = "0.2"
+regex = "1"
+memchr = "2"
+
+# Syntax & Language
+tree-sitter = "0.24"
+
+# File system
+notify = { version = "7", features = ["macos_fsevent"] }
+walkdir = "2"
+globset = "0.4"
+ignore = "0.4"
+
+# Terminal
+portable-pty = "0.8"
+vte = "0.13"
+
+# Git
+gix = { version = "0.68", default-features = false }
+
+# Database
+rusqlite = { version = "0.31", features = ["bundled", "backup"] }
+
+# Remote
+russh = "0.46"
+bollard = "0.18"
+tokio-tungstenite = "0.26"
+
+# HTTP
+reqwest = { version = "0.12", features = ["rustls-tls"] }
+
+# Concurrency
+crossbeam = "0.8"
+dashmap = "6"
+rayon = "1"
+parking_lot = "0.12"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+dbg_macro = "warn"
+todo = "warn"
+unimplemented = "warn"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+panic = "abort"

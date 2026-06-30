@@ -1,0 +1,31 @@
+[package]
+name = "crow-acp"
+description = "Agent Client Protocol integration for Crow"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+# Internal — reuse Crow infrastructure
+crow-terminal = { workspace = true }
+crow-workspace = { workspace = true }
+
+# Core
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+crossbeam = { workspace = true }
+parking_lot = { workspace = true }
+
+# Process management
+tracing = "0.1"
+uuid = { version = "1", features = ["v4"] }
+agent-client-protocol-schema = "0.13.4"
+chrono = { version = "0.4", features = ["serde"] }
+dirs = "5"
+
+[lints]
+workspace = true

@@ -1,0 +1,102 @@
+name: Build Desktop App
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            os: ubuntu-24.04
+            args: ""
+          - platform: linux-aarch64
+            os: ubuntu-24.04-arm
+            args: ""
+          # macOS and Windows builds disabled for now
+          # - platform: macos-x86_64
+          #   os: macos-latest
+          #   args: "--target x86_64-apple-darwin"
+          # - platform: macos-aarch64
+          #   os: macos-latest
+          #   args: "--target aarch64-apple-darwin"
+          # - platform: windows-x86_64
+          #   os: windows-latest
+          #   args: ""
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update version from git tag
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "Building version: $VERSION"
+          
+          # Update tauri.conf.json
+          jq ".version = \"$VERSION\"" src-tauri/tauri.conf.json > tmp.json && mv tmp.json src-tauri/tauri.conf.json
+          
+          # Update package.json
+          jq ".version = \"$VERSION\"" package.json > tmp.json && mv tmp.json package.json
+          
+          # Update Cargo.toml
+          sed -i "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
+          
+          # Verify the changes
+          echo "tauri.conf.json version: $(jq -r .version src-tauri/tauri.conf.json)"
+          echo "package.json version: $(jq -r .version package.json)"
+          echo "Cargo.toml version: $(grep '^version = ' src-tauri/Cargo.toml)"
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: ${{ matrix.platform == 'macos-x86_64' && 'x86_64-apple-darwin' || matrix.platform == 'macos-aarch64' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install frontend dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Download VSCode extensions
+        run: npm run setup:full
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: npx tauri
+          tagName: ${{ github.ref_name }}
+          releaseName: "Crow v__VERSION__"
+          releaseBody: "See the assets to download this version and install."
+          releaseDraft: false
+          prerelease: ${{ github.event.release.prerelease }}
+          args: ${{ matrix.args }}

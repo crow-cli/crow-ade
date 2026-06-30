@@ -1,0 +1,10 @@
+[package]
+name = "hello-extension"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+crow-extension-sdk = { path = "../../crow-extension-sdk" }
+
+[lib]
+crate-type = ["cdylib"]
